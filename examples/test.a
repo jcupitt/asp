@@ -1,0 +1,6 @@
+#include "prelude.a"
+
+srev = sort.reverse;
+% main = srev.srev.srev.srev.srev [1..75];
+
+main= transpose [[1..5],[6..10]];

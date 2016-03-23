@@ -1,0 +1,287 @@
+% Asp standard prelude
+
+% Take the absolute value of a number. abs (-3) = 3.
+% abs :: num -> num
+abs x = -x, x < 0;
+      = x;
+
+% Join two lists together head to tail. cat "abc" "def" = "abcdef".
+% cat :: [*] -> [**] -> [*,**]
+cat l1 l2 
+      = l2, l1 = [];
+      = a:(cat x l2);
+	{	a = hd l1;
+		x = tl l1;
+	}
+
+% Turn a character into it's ASCII eqivalent. code 'a' = 97. Defined 
+% internally.
+% code :: char -> num
+
+% Join a list of lists together. concat ["abc","def"] = "abcdef".
+% concat :: [[*]] -> [*]
+concat = foldr cat [];
+
+% Create a constant-valued function. (const 3) is the function that always
+% returns 3.
+% const :: * -> ** -> *
+const x y = x;
+
+% Versions of the built in operators that can be used as functions. 
+curry_and a b = a and b;
+curry_cons x y = x:y;
+curry_divide a b = a / b;
+curry_equal a b = a = b;
+curry_hd list = hd list;
+curry_minus a b = a - b;
+curry_neg x = -x;
+curry_not a = ~a;
+curry_notequal a b = a <> b;
+curry_or a b = a or b;
+curry_plus a b = a + b;
+curry_times a b = a * b;
+curry_tl list = tl list;
+
+% Turn a ASCII number into it's character. decode 97 = 'a'. Defined 
+% internally.
+% decode :: num -> char
+
+% A predicate to test characters for being digits.
+% digit :: char->bool
+digit x = '0' <= x and x <= '9';
+
+% Drop the first n elements of a list. drop 3 "abcd" = "d".
+% drop :: num -> [*] -> [*]
+drop n list
+      = list, n = 0; 
+      = [], list = []; 
+      = drop (n - 1) (tl list);
+
+% Drop elements from a list while some predicate yields true. dropwhile digit
+% "1234pigs" = "pigs"
+% dropwhile :: (* -> bool) -> [*] -> [*]
+dropwhile f list 
+      = [], list = [];
+      = dropwhile f x, f a;
+      = list;
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Print an error message and stop. Defined internally again.
+% error :: [char] -> *
+
+% Look through a list, selecting all elements for which a predicate yields
+% true. filter digit "1one2two3three" = "123"
+% filter :: (* -> bool) -> [*] -> [*]
+filter fn list 
+      = [], list = [];
+      = a: (filter fn x), fn a;
+      = filter fn x;
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Fold a list up using a binary operator and a start value. Start from the
+% left hand end of the list (unlike foldr, see below). foldl is less useful
+% in general (and much slower).
+% foldl op start [a,b,..z] = ((((a op start) op b) ..) op z)
+% foldl :: (* -> ** -> **) -> ** -> [*] -> **
+foldl op r list 
+      = r, list = []; 
+      = foldl op (op a r) x;
+	{	a = hd list;
+		x = tl list;
+	}
+
+% foldr op start [a,b,..z] = (a op (b op (.. (z op start))))
+% foldr :: (* -> ** -> **) -> ** -> [*] -> **
+foldr op r list 
+      = r, list = [];
+      = op a (foldr op r x);
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Take the head of a list. hd "abc" = 'a'. Defined internally.
+% hd :: [*] -> *
+
+% The identity function.
+% id :: * -> *
+id x = x;
+
+% Return a list with it's last element missing - the dual of tl.
+% init [1,2,3] = [1,2]
+% init :: [*] -> [*]
+init list 
+      = error "init of []", list = [];
+      = [], x = []; 
+      = a: (init x);
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Return the infinite list [x, f x, f (f x), ..]. 
+% iterate (curry_times 2) 1
+% Is the list of the powers of two.
+% iterate :: (* -> *) -> * -> [*]
+iterate f x = x: (iterate f (f x));
+
+% And all the elements of a list together. 
+% land (map (curry_equal 0) list) = true, if every element of list is zero.
+% land :: [bool] -> bool
+land = foldr curry_and true;
+
+% Return the last element of a list. The dual of hd. last [1,2,3] = 3
+% last :: [*] -> [*]
+last list 
+      = error "last of []", list = [];
+      = a, x = []; 
+      = last x;
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Find the length of a list
+% len :: [*] -> num
+len list
+      = 0, list = [];
+      = 1 + len (tl list);
+
+% True if a character is a letter.
+% letter :: char -> bool
+letter c = ('a' <= c and c <= 'z') or ('A' <= c and c <= 'Z');
+
+% Or a list together. 
+% lor (map digit list) = true, if there is a digit in list.
+% lor :: [bool] -> bool
+lor = foldr curry_or false;
+
+% Apply a function to every element in a list, returning a list of results.
+% map digit "1o2" = [true,false,true]
+% map :: (* -> **) -> [*] -> [**]
+map f list 
+      = [], list = [];
+      = (f a): (map f x);
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Find the maximum of a list. max [1,2,6,4,4] = 6
+% max :: [*] -> *
+max list 
+      = error "max of []", list = [];
+      = a, x = [];
+      = max' a (max x);
+	{	a = hd list;
+		x = tl list;
+		max' a b 
+		      = a, a >= b;
+		      = b;
+	}
+
+% Does a list contain a particular element? 
+% digit = member "0123456789"
+% member::[*]->*->bool
+member x a = lor (map (curry_equal a) x);
+
+% Find the minimum of a list - much simpler than max!
+% min :: [*] -> *
+min = curry_hd.sort;
+
+% Remove duplicates from a list (make it look like a set).
+% mkset :: [*] -> [*]
+mkset list 
+      = [], list = [];
+      = a: (filter (curry_notequal a) (mkset x));
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Multiply a list together.
+% product :: [num] -> num
+product = foldr curry_times 1;
+
+% Add an element to the tail of a list. The dual of ':'.
+% postfix :: [*] -> ** -> [*,**]
+postfix list r 
+      = [r], list = [];
+      = a: (postfix x r);
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Reverse a list.
+% reverse :: [*] -> [*]
+reverse = foldl curry_cons [];
+
+% Sort a list. Does a simpleminded insert sort -- this seems to be quickest
+% in a functional language, at least for small lists. This is probably because
+% it is very simple! It might be worth experimenting if large lists need 
+% sorting.
+% sort :: [*] -> [*]
+sort list 
+      = [], list = [];
+      = insert a (sort x);
+	{	a = hd list;
+		x = tl list;
+	}
+
+insert r list 
+      = [r], list = [];
+      = r: list, r <= a;
+      = a: (insert r x);
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Select subscript n from a list. Number lists from zero.
+% sub :: num -> [*] -> *
+sub n list
+      = a, n = 0;
+      = sub (n - 1) x;
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Add up the elements of a list.
+% sum :: [num] -> num
+sum = foldr curry_plus 0;
+
+% Take the first n elements of a list. take 2 "234" = "23"
+% take :: num -> [*] -> [*]
+take n list 
+      = [], n = 0;
+      = [], list = [];
+      = a: (take (n - 1) x);
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Take from the front of a list while some predicate holds. takewhile
+% digit "123onetwothree" = "123"
+% takewhile :: (* -> bool) -> [*] -> [*]
+takewhile f list 
+      = [], list = [];
+      = a: (takewhile f x), f a;
+      = [];
+	{	a = hd list;
+		x = tl list;
+	}
+
+% Return the tail of a list. Defined internally.
+% tl::[*]->[*]
+
+% Transpose a matrix - ie. swap over rows and columns. 
+% transpose [[1,2,3],[4,5],[6]] = [[1,4,6],[2,5],[3]]
+% transpose :: [[*]] -> [[*]]
+transpose list 
+      = [], list' = [];
+      = (map curry_hd list'): (transpose (map curry_tl list'));
+	{	list' = takewhile (curry_notequal []) list;
+	}
+
+% The undefined value.
+% undef :: *
+undef = error "undefined";
+
